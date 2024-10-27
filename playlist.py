@@ -1,7 +1,15 @@
 from googleapiclient.discovery import build
+import os
+from dotenv import load_dotenv
 
-youtubeApiKey = "AIzaSyAOtagOeO_TyVcBJLIjs5sQogyobUKPr2o"
+# Carregar variáveis do .env
+load_dotenv()
 
+# Obtendo a API key do .env
+youtubeApiKey = os.getenv('YOUTUBE_API_KEY')
+
+# Build é um recurso para interagir com a API
+# Argumentos: NomeServiço, versão, API KEY
 youtube = build('youtube', 'v3', developerKey=youtubeApiKey)
 
 # Extraindo vídeos de uma playlist
