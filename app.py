@@ -1,11 +1,14 @@
 # Importando o modulo cliente que permite fazer a consulta
 from googleapiclient.discovery import build
 import pandas as pd
+import os
+from dotenv import load_dotenv
 
+# Carregar variáveis do .env
+load_dotenv()
 
-
-# Salvando a KEY API em uma váriavel
-youtubeApiKey = 'AIzaSyAOtagOeO_TyVcBJLIjs5sQogyobUKPr2o'
+# Obtendo a API key do .env
+youtubeApiKey = os.getenv('YOUTUBE_API_KEY')
 
 # Build é um recurso para interagir com a API
 # Argumentos: NomeServiço, versão, API KEY
@@ -140,7 +143,7 @@ def main():
     df = pd.DataFrame(playlist,  index=[0])
     print(df)
 
-    df.to_csv('C:/Users/rebek/OneDrive/Área de Trabalho/youtube-podpah/df.csv')
+    df.to_csv('./df.csv')
 
 
 main()
