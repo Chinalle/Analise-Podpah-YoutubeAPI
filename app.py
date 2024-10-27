@@ -62,6 +62,8 @@ def get_videos_playlist(playlistId):
         video_id = item['contentDetails']['videoId']
         title = item['snippet']['title']
         videos.append({'video_id': video_id, 'title': title})
+
+    print(videos)
     return videos
 
     # Processamento dos itens da resposta
@@ -123,24 +125,22 @@ def main():
     #videos = get_latest_videos(channel_id)
     filtered_videos = filter_non_shorts(videos)  # Filtra vídeos para evitar shorts
 
-    playlist = dict.fromkeys(["title","url","views","likes","comments","duration"],"vazio")
-    for video in filtered_videos: 
-        stats = video['stats'] 
-        print(f"Título: {video['title']}")
-        playlist["title"] = video['title']
-        print(f"URL: https://www.youtube.com/watch?v={video['video_id']}") 
-        playlist["url"] =  "https://www.youtube.com/watch?v="+video['video_id']
-        print(f"Visualizações: {stats['views']}")
-        playlist["views"] = stats['views']
-        print(f"Likes: {stats['likes']}") 
-        playlist["likes"] = stats['likes']
-        print(f"Comentários: {stats['comments']}") 
-        playlist["comments"] = stats['comments']
-        print(f"Duração: {stats['duration']}")  # Mostra a duração no formato ISO 8601
-        playlist["duration"] = stats['duration']
-        print("="*50) 
+    playlist = []
 
-    df = pd.DataFrame(playlist,  index=[0])
+    for video in filtered_videos: 
+        stats = video["stats"]
+        video_info = {
+            'title': video['title'],
+            "url": f'https://www.youtube.com/watch?v={video['video_id']}',
+            "views": stats["views"],
+            "likes": stats["likes"],
+            "comments": stats['comments'],
+            "duration": stats["duration"]
+        }
+
+        playlist.append(video_info)
+    
+    df = pd.DataFrame(playlist)
     print(df)
 
     df.to_csv('./df.csv')
