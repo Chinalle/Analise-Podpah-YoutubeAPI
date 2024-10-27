@@ -1,5 +1,8 @@
 # Importando o modulo cliente que permite fazer a consulta
 from googleapiclient.discovery import build
+import pandas as pd
+
+
 
 # Salvando a KEY API em uma váriavel
 youtubeApiKey = 'AIzaSyAOtagOeO_TyVcBJLIjs5sQogyobUKPr2o'
@@ -10,7 +13,6 @@ youtube = build('youtube', 'v3', developerKey=youtubeApiKey)
 
 # Nome do canal do Youtube
 channel_name = "Podpah"
-
 # Função que retorna o id do canal através do nome
 def get_channel_id(channel_name): 
     # Variavel res é um dicinário que vai armazenar todas as propriedades do canal buscada
@@ -37,21 +39,50 @@ def get_channel_id(channel_name):
 # Executando a função e armazenando o valor dentro dele
 channel_id = get_channel_id(channel_name) 
 
-def get_latest_videos(channelId): 
-    res = youtube.search().list( 
-        part='snippet', 
-        channelId=channelId, 
-        maxResults=20, 
-        order='date', 
-        type='video'
-    ).execute() 
 
-    videos = [] 
-    for item in res['items']: 
-        video_id = item['id']['videoId'] 
-        title = item['snippet']['title'] 
-        videos.append({'video_id': video_id, 'title': title}) 
-    return videos 
+playlistId = "PLaE_mZALZ0V1R6Ztc8W7SeCi_hHtEQ1f2"
+playlistName = 'QUERIDO DIÁRIO'
+nextPage_token = None
+
+playlist_videos = []
+
+def get_videos_playlist(playlistId):
+    # Chamada correta da API com o execute()
+    res = youtube.playlistItems().list(
+        part='snippet,contentDetails',  # Adiciona 'contentDetails' para incluir o videoId
+        playlistId=playlistId,
+        maxResults=17
+    ).execute()  # Chamando o método execute()
+
+    videos = []
+    for item in res['items']:
+        video_id = item['contentDetails']['videoId']
+        title = item['snippet']['title']
+        videos.append({'video_id': video_id, 'title': title})
+    return videos
+
+    # Processamento dos itens da resposta
+    # for item in res['items']:
+    #     title = item['snippet']['title']
+    #     video_id = item['snippet']['resourceId']['videoId']
+    #     print(f'Título: {title}, URL: https://www.youtube.com/watch?v={video_id}')
+
+
+# def get_latest_videos(channelId): 
+#     res = youtube.search().list( 
+#         part='snippet', 
+#         channelId=channelId, 
+#         #maxResults=999, 
+#         order='date', 
+#         type='video'
+#     ).execute() 
+
+#     videos = [] 
+#     for item in res['items']: 
+#         video_id = item['id']['videoId'] 
+#         title = item['snippet']['title'] 
+#         videos.append({'video_id': video_id, 'title': title}) 
+#     return videos 
 
 def get_video_stats(video_id): 
     res = youtube.videos().list( 
@@ -85,17 +116,31 @@ def filter_non_shorts(videos):
     return filtered_videos 
 
 def main(): 
-    videos = get_latest_videos(channel_id) 
+    videos = get_videos_playlist(playlistId)
+    #videos = get_latest_videos(channel_id)
     filtered_videos = filter_non_shorts(videos)  # Filtra vídeos para evitar shorts
 
+    playlist = dict.fromkeys(["title","url","views","likes","comments","duration"],"vazio")
     for video in filtered_videos: 
         stats = video['stats'] 
-        print(f"Título: {video['title']}") 
+        print(f"Título: {video['title']}")
+        playlist["title"] = video['title']
         print(f"URL: https://www.youtube.com/watch?v={video['video_id']}") 
-        print(f"Visualizações: {stats['views']}") 
+        playlist["url"] =  "https://www.youtube.com/watch?v="+video['video_id']
+        print(f"Visualizações: {stats['views']}")
+        playlist["views"] = stats['views']
         print(f"Likes: {stats['likes']}") 
+        playlist["likes"] = stats['likes']
         print(f"Comentários: {stats['comments']}") 
+        playlist["comments"] = stats['comments']
         print(f"Duração: {stats['duration']}")  # Mostra a duração no formato ISO 8601
+        playlist["duration"] = stats['duration']
         print("="*50) 
+
+    df = pd.DataFrame(playlist,  index=[0])
+    print(df)
+
+    df.to_csv('C:/Users/rebek/OneDrive/Área de Trabalho/youtube-podpah/df.csv')
+
 
 main()
