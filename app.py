@@ -1,25 +1,40 @@
+# Importando o modulo cliente que permite fazer a consulta
 from googleapiclient.discovery import build
 
-
+# Salvando a KEY API em uma váriavel
 youtubeApiKey = 'AIzaSyAOtagOeO_TyVcBJLIjs5sQogyobUKPr2o'
 
+# Build é um recurso para interagir com a API
+# Argumentos: NomeServiço, versão, API KEY
 youtube = build('youtube', 'v3', developerKey=youtubeApiKey)
 
+# Nome do canal do Youtube
 channel_name = "Podpah"
 
+# Função que retorna o id do canal através do nome
 def get_channel_id(channel_name): 
+    # Variavel res é um dicinário que vai armazenar todas as propriedades do canal buscada
+    # A função search.list vai retornar as propriedades
+    # O argumento part recebendo o valor snippet, traz todos os parâmetros
+    # O q é o termo de busca, nesse caso o nome do canal
+    # Type especifica o tipo da busca, pode ser para videos ou playlist também
+    # maxResults limita a busca 
     res = youtube.search().list( 
         part='snippet', 
         q=channel_name, 
         type='channel', 
         maxResults=1 
     ).execute() 
-
+    # Verifica se a algum item dentro da lista items que se encontra no dicionario res
     if res['items']: 
+        # Retorna o channelId
+        # [Items][0] é o primeiro valor dentro da lista items
+        # O primeiro valor da list items ([Items][0]) é o dicionario snippet
         return res['items'][0]['snippet']['channelId'] 
     else: 
         return None 
 
+# Executando a função e armazenando o valor dentro dele
 channel_id = get_channel_id(channel_name) 
 
 def get_latest_videos(channelId): 
