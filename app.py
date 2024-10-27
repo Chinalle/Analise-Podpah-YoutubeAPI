@@ -141,9 +141,10 @@ def main():
         playlist.append(video_info)
     
     df = pd.DataFrame(playlist)
+
     print(df)
 
-    df.to_csv('./df.csv')
+    df.to_csv('./df.csv', index=False)
 
 
 main()
