@@ -3,6 +3,7 @@ from googleapiclient.discovery import build
 import pandas as pd
 import os
 from dotenv import load_dotenv
+from utils import format_youtube_duration
 
 # Carregar variáveis do .env
 load_dotenv()
@@ -52,7 +53,7 @@ playlist_videos = []
 def get_videos_playlist(playlistId):
     # Chamada correta da API com o execute()
     res = youtube.playlistItems().list(
-        part='snippet,contentDetails',  # Adiciona 'contentDetails' para incluir o videoId
+        part='snippet, contentDetails',  # Adiciona 'contentDetails' para incluir o videoId
         playlistId=playlistId,
         maxResults=17
     ).execute()  # Chamando o método execute()
@@ -66,28 +67,6 @@ def get_videos_playlist(playlistId):
     print(videos)
     return videos
 
-    # Processamento dos itens da resposta
-    # for item in res['items']:
-    #     title = item['snippet']['title']
-    #     video_id = item['snippet']['resourceId']['videoId']
-    #     print(f'Título: {title}, URL: https://www.youtube.com/watch?v={video_id}')
-
-
-# def get_latest_videos(channelId): 
-#     res = youtube.search().list( 
-#         part='snippet', 
-#         channelId=channelId, 
-#         #maxResults=999, 
-#         order='date', 
-#         type='video'
-#     ).execute() 
-
-#     videos = [] 
-#     for item in res['items']: 
-#         video_id = item['id']['videoId'] 
-#         title = item['snippet']['title'] 
-#         videos.append({'video_id': video_id, 'title': title}) 
-#     return videos 
 
 def get_video_stats(video_id): 
     res = youtube.videos().list( 
@@ -135,16 +114,19 @@ def main():
             "views": stats["views"],
             "likes": stats["likes"],
             "comments": stats['comments'],
-            "duration": stats["duration"]
+            "duration": format_youtube_duration(stats["duration"])
         }
 
         playlist.append(video_info)
-    
+
     df = pd.DataFrame(playlist)
 
     print(df)
 
+
     df.to_csv('./df.csv', index=False)
+
+    
 
 
 main()
