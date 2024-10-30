@@ -4,6 +4,8 @@ import pandas as pd
 import os
 from dotenv import load_dotenv
 from utils import format_youtube_duration
+# from dbconnection import create
+import dbconnection as db
 
 # Carregar variáveis do .env
 load_dotenv()
@@ -104,7 +106,7 @@ def main():
     #videos = get_latest_videos(channel_id)
     filtered_videos = filter_non_shorts(videos)  # Filtra vídeos para evitar shorts
 
-    playlist = []
+    #playlist = []
 
     for video in filtered_videos: 
         stats = video["stats"]
@@ -114,17 +116,18 @@ def main():
             "views": stats["views"],
             "likes": stats["likes"],
             "comments": stats['comments'],
-            "duration": format_youtube_duration(stats["duration"])
+            "duration": format_youtube_duration(stats["duration"])            
         }
-
-        playlist.append(video_info)
-
-    df = pd.DataFrame(playlist)
-
-    print(df)
+        db.create(video_info['title'],video_info['url'],video_info['views'],video_info['likes'],video_info['comments'],video_info['duration'])
+        #playlist.append(video_info)
 
 
-    df.to_csv('./df.csv', index=False)
+    #df = pd.DataFrame(playlist)
+   
+    #print(df)
+
+
+    #df.to_csv('./df.csv', index=False)
 
     
 
