@@ -4,6 +4,7 @@ import pandas as pd
 import os
 from dotenv import load_dotenv
 from utils import format_youtube_duration
+from aws import s3, upload_to_s3
 
 # Carregar variáveis do .env
 load_dotenv()
@@ -62,7 +63,8 @@ def get_videos_playlist(playlistId):
     for item in res['items']:
         video_id = item['contentDetails']['videoId']
         title = item['snippet']['title']
-        videos.append({'video_id': video_id, 'title': title})
+        published_at = item['snippet']['publishedAt']
+        videos.append({'video_id': video_id, 'title': title, 'published_at': published_at})
 
     print(videos)
     return videos
@@ -70,17 +72,19 @@ def get_videos_playlist(playlistId):
 
 def get_video_stats(video_id): 
     res = youtube.videos().list( 
-        part='statistics,contentDetails', 
+        part='statistics, contentDetails, snippet', 
         id=video_id 
     ).execute() 
 
     stats = res['items'][0]
     video_stats = stats['statistics']
-    duration = stats['contentDetails']['duration'] 
+    duration = stats['contentDetails']['duration']
+    publishedAt = stats['snippet']['publishedAt']
     return { 
         'views': video_stats.get('viewCount', 0), 
         'likes': video_stats.get('likeCount', 0), 
         'comments': video_stats.get('commentCount', 0),
+        'published_at': publishedAt,
         'duration': duration
     } 
 
@@ -114,6 +118,7 @@ def main():
             "views": stats["views"],
             "likes": stats["likes"],
             "comments": stats['comments'],
+            'published_at': stats['published_at'],
             "duration": format_youtube_duration(stats["duration"])
         }
 
@@ -125,6 +130,8 @@ def main():
 
 
     df.to_csv('./df.csv', index=False)
+
+    upload_to_s3('df_querido_diario', 'podpahdata')
 
     
 
