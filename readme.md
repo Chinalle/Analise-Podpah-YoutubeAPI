@@ -3,8 +3,11 @@
 ## Tecnologias usadas
 
 [![YouTube API V3](https://img.shields.io/badge/YouTube%20API%20V3-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://developers.google.com/youtube/v3/docs/search/list?hl=pt-br)
-[![Google Cloud](https://img.shields.io/badge/Google%20Cloud-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white)](https://cloud.google.com/?hl=en)
-[![Google Vertex AI](https://img.shields.io/badge/Google%20Vertex%20AI-0E86F0?style=for-the-badge&logo=googlecloud&logoColor=white)](https://cloud.google.com/vertex-ai?_gl=1*7ffbow*_up*MQ..&gclid=CjwKCAjwyfe4BhAWEiwAkIL8sKk1e1l8H_4woEnV9ipcHXA7Zd6XDQTE-e6ZM0PmSnC5GSgekvAudBoCjo4QAvD_BwE&gclsrc=aw.ds&hl=en)
+[![AWS](https://img.shields.io/badge/Amazon%20Web%20Services-232F3E?style=for-the-badge&logo=amazonaws&logoColor=white)](https://aws.amazon.com/)
+[![Amazon S3](https://img.shields.io/badge/Amazon%20S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white)](https://aws.amazon.com/s3/)
+[![AWS Lambda](https://img.shields.io/badge/Amazon%20Lambda-FF9900?style=for-the-badge&logo=amazonlambda&logoColor=white)](https://aws.amazon.com/lambda/)
+[![AWS Glue](https://img.shields.io/badge/Amazon%20Glue-FF9900?style=for-the-badge&logo=amazonglue&logoColor=white)](https://aws.amazon.com/glue/)
+[![Amazon Comprehend](https://img.shields.io/badge/Amazon%20Comprehend-FF9900?style=for-the-badge&logo=amazoncomprehend&logoColor=white)](https://aws.amazon.com/comprehend/)
 [![Pandas](https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas&logoColor=white)](https://pandas.pydata.org/docs/index.html)
 [![Postgres](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/docs/)
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/doc/)
@@ -43,7 +46,7 @@ Definir os clusters: Usar o algoritmo de clusterização KMeans para agrupar ví
 
 ### - Parâmetros para clusterização
 
-Quantidade de visualizações, curtidas, sentimento dos comentários e duração.
+Quantidade de visualizações, curtidas, sentimento dos comentários [positivos ou negativos] e duração.
 
 - Identificar padrões de engajamento em cada cluster para determinar quais grupos de vídeos (e quadros) têm menor engajamento em comparação aos demais.
 
@@ -51,3 +54,7 @@ Quantidade de visualizações, curtidas, sentimento dos comentários e duração
 
 Identificar Quadros de Menor Engajamento: Com base na clusterização, observar quais quadros estão em clusters de menor engajamento.
 Recomendações: Sugerir estratégias como mudanças no horário de postagem, ajustes na duração dos vídeos ou melhorias no conteúdo para aumentar o engajamento dos quadros menos populares.
+
+## API Youtueb Data V3
+
+endpoint: GET <https://www.googleapis.com/youtube/v3/videos?part=snippet&id=VIDEO_ID&key=API_KEY>

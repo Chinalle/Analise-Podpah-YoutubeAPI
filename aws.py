@@ -44,4 +44,4 @@ def get_bucket_data(bucket_name, file_name):
         print('O bucket está vazio.')
 
 # teste fora do uso da api do youtube -> utiliza dados diretos do csv salvo no bucket
-get_bucket_data('podpahdata', './df.csv') 
+#get_bucket_data('podpahdata', './df.csv') 
