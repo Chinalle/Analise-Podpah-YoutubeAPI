@@ -5,19 +5,20 @@ from botocore.exceptions import NoCredentialsError
 
 s3 = boto3.client('s3') # instanciando armazenamento do aws s3 para dados não estruturados
 
-def upload_to_s3(file_name, bucket, object_name=None): # o file_name salva o arquivo exatamente como foi descrito no parametro 1 da função
-    
-    if object_name is None:
-        object_name = file_name
+def upload_to_s3(file_name, bucket, directory): # o file_name salva o arquivo exatamente como foi descrito no parametro 1 da função
+
+    object_name = f"{directory}/{file_name.split('/')[-1]}" 
 
     try:
         s3.upload_file(file_name, bucket, object_name)
-        print(f'Upload {file_name} para o bucket {bucket} realizado com sucesso!')
-
+        print(f'Upload de {file_name} para s3://{bucket}/{object_name} realizado com sucesso!')
+        
     except FileNotFoundError:
-        print(f'Arquivo {file_name} não encontrado.')
+        print(f'O arquivo {file_name} não foi encontrado.')
     except NoCredentialsError:
         print('Credenciais não disponíveis.')
+    except PartialCredentialsError:
+        print('Credenciais incompletas.')
 
 def get_bucket_data(bucket_name, file_name):
     global s3
