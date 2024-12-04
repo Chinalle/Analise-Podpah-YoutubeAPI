@@ -9,10 +9,8 @@ from aws import upload_to_s3
 load_dotenv()
 youtubeApiKey = os.getenv('YOUTUBE_API_KEY')
 youtube = build('youtube', 'v3', developerKey=youtubeApiKey)
-
-
-
 channel_name = "Podpah"
+
 def get_channel_id(channel_name): 
     # Variavel res é um dicinário que vai armazenar todas as propriedades do canal buscada
     # A função search.list vai retornar as propriedades
@@ -34,8 +32,8 @@ def get_channel_id(channel_name):
         return request['items'][0]['snippet']['channelId'] 
     else: 
         return None 
-channel_id = get_channel_id(channel_name)
 
+channel_id = get_channel_id(channel_name)
 
 def get_playlists(id):
   data_playlist = []

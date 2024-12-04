@@ -1,0 +1,132 @@
+{
+	"jobConfig": {
+		"name": "podpah",
+		"description": "",
+		"role": "arn:aws:iam::539247471849:role/service-role/AWSGlueServiceRole",
+		"command": "glueetl",
+		"version": "4.0",
+		"runtime": null,
+		"workerType": "G.1X",
+		"numberOfWorkers": 10,
+		"maxCapacity": 10,
+		"jobRunQueuingEnabled": false,
+		"maxRetries": 0,
+		"timeout": 2880,
+		"maxConcurrentRuns": 1,
+		"security": "none",
+		"scriptName": ".py",
+		"scriptLocation": "s3://aws-glue-assets-539247471849-us-east-1/scripts/",
+		"language": "python-3",
+		"spark": true,
+		"sparkConfiguration": "standard",
+		"jobParameters": [],
+		"tags": [],
+		"jobMode": "DEVELOPER_MODE",
+		"createdOn": "2024-12-02T02:13:46.922Z",
+		"developerMode": true,
+		"connectionsList": [],
+		"temporaryDirectory": "s3://aws-glue-assets-539247471849-us-east-1/temporary/",
+		"logging": true,
+		"glueHiveMetastore": true,
+		"etlAutoTuning": true,
+		"metrics": true,
+		"observabilityMetrics": true,
+		"bookmark": "job-bookmark-disable",
+		"sparkPath": "s3://aws-glue-assets-539247471849-us-east-1/sparkHistoryLogs/",
+		"flexExecution": false,
+		"minFlexWorkers": null,
+		"sourceControlDetails": {
+			"Provider": "GITHUB",
+			"Repository": "",
+			"Branch": ""
+		},
+		"maintenanceWindow": null
+	},
+	"dag": {
+		"node-1": {
+			"nodeId": "node-1",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [],
+			"name": "S3 bucket",
+			"generatedNodeName": "S3bucket_node1",
+			"classification": "DataSource",
+			"type": "S3",
+			"isCatalog": true,
+			"database": "podpahdata_db",
+			"table": "raw",
+			"partitionPredicate": "",
+			"additionalOptions": {
+				"boundedSize": null,
+				"boundedFiles": null,
+				"boundedOption": null
+			},
+			"calculatedType": "CatalogS3DataSource",
+			"runtimeParameters": [],
+			"codeGenVersion": 2
+		},
+		"node-2": {
+			"nodeId": "node-2",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1"
+			],
+			"name": "EvaluateDataQualityMultiFrame",
+			"generatedNodeName": "EvaluateDataQualityMultiFrame_node2",
+			"classification": "Transform",
+			"type": "EvaluateDataQualityMultiFrame",
+			"ruleset": "# Example rules: Completeness \"colA\" between 0.4 and 0.8, ColumnCount > 10\nRules = [\n    \n]",
+			"output": "EvaluationResults",
+			"publishingOptions": {
+				"evaluationContext": null,
+				"cloudWatchMetricsEnabled": true,
+				"resultsS3Prefix": "",
+				"resultsPublishingEnabled": true
+			},
+			"stopJobOnFailureOptions": {
+				"stopJobOnFailureTiming": null
+			},
+			"additionalOptions": {
+				"observations.scope": "ALL",
+				"performanceTuning.caching": "CACHE_NOTHING"
+			},
+			"parentsValid": true,
+			"calculatedType": "",
+			"codeGenVersion": 2
+		},
+		"node-3": {
+			"nodeId": "node-3",
+			"dataPreview": false,
+			"previewAmount": 0,
+			"inputs": [
+				"node-1"
+			],
+			"name": "S3 bucket/raw",
+			"generatedNodeName": "S3bucketraw_node3",
+			"classification": "DataSink",
+			"type": "S3",
+			"streamingBatchInterval": 100,
+			"format": "csv",
+			"compression": "snappy",
+			"path": "s3://podpahdata/raw/",
+			"partitionKeys": [],
+			"schemaChangePolicy": {
+				"enableUpdateCatalog": false,
+				"updateBehavior": null,
+				"database": null,
+				"table": null
+			},
+			"updateCatalogOptions": "none",
+			"autoDataQuality": {
+				"isEnabled": false,
+				"evaluationContext": null
+			},
+			"calculatedType": "",
+			"codeGenVersion": 2
+		}
+	},
+	"hasBeenSaved": false,
+	"usageProfileName": null,
+	"script": "import sys\r\nfrom awsglue.transforms import *\r\nfrom awsglue.utils import getResolvedOptions\r\nfrom pyspark.context import SparkContext\r\nfrom awsglue.context import GlueContext\r\nfrom awsglue.job import Job\r\nfrom awsglue.dynamicframe import DynamicFrame \r\nfrom pyspark.sql.functions import to_timestamp, udf, year, month, col\r\nimport re\r\nfrom datetime import timedelta\r\nimport logging\r\n\r\n# Configuração inicial do Glue Job\r\nargs = getResolvedOptions(sys.argv, ['JOB_NAME'])\r\nsc = SparkContext()\r\nglueContext = GlueContext(sc)\r\nspark = glueContext.spark_session\r\njob = Job(glueContext)\r\njob.init(args['JOB_NAME'], args)\r\n\r\n# Função para converter a duração ISO 8601 para segundos (sem dependência externa)\r\ndef duration_to_seconds(duration):\r\n    # Expressão regular para capturar partes da duração (horas, minutos, segundos)\r\n    regex = r\"PT(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?\"\r\n    match = re.match(regex, duration)\r\n    \r\n    if not match:\r\n        return None  # Caso a string não seja no formato esperado\r\n    \r\n    # Extraindo as partes da duração\r\n    hours = int(match.group(1)) if match.group(1) else 0\r\n    minutes = int(match.group(2)) if match.group(2) else 0\r\n    seconds = int(match.group(3)) if match.group(3) else 0\r\n    \r\n    # Convertendo para segundos\r\n    total_seconds = timedelta(hours=hours, minutes=minutes, seconds=seconds).total_seconds()\r\n    return int(total_seconds)\r\n\r\n# Leitura dos dados brutos do bucket S3\r\nS3bucket_node1 = glueContext.create_dynamic_frame.from_catalog(\r\n    database=\"podpahdata_db\", \r\n    table_name=\"raw\", \r\n    transformation_ctx=\"S3bucket_node1\"\r\n)\r\n\r\n# Conversão de DynamicFrame para DataFrame\r\ndf = S3bucket_node1.toDF()\r\n\r\n# Registro de função UDF para conversão de duração\r\nudf_duration_to_seconds = udf(duration_to_seconds, \"int\")\r\n\r\n# Transformações no DataFrame\r\ndf = (\r\n    df.withColumn(\"published_at\", to_timestamp(\"published_at\", \"yyyy-MM-dd'T'HH:mm:ss'Z'\"))  # Conversão de published_at para timestamp\r\n      .withColumn(\"duration\", udf_duration_to_seconds(\"duration\"))  # Conversão de duration para segundos\r\n      .fillna({\"views\": 0, \"likes\": 0, \"comments\": 0})  # Preenchimento de valores nulos em métricas numéricas\r\n      .withColumn(\"year\", year(\"published_at\"))  # Extração do ano\r\n      .withColumn(\"month\", month(\"published_at\"))  # Extração do mês\r\n      .withColumn(\"engagement_rate\", (col(\"likes\") + col(\"comments\")) / col(\"views\"))  # Cálculo de taxa de engajamento\r\n)\r\n\r\n# Conversão de volta para DynamicFrame\r\nprocessed_frame = DynamicFrame.fromDF(df, glueContext, \"processed_frame\")\r\n\r\n# Escrita dos dados transformados no bucket S3 (diretório processed)\r\nglueContext.write_dynamic_frame.from_options(\r\n    frame=processed_frame,\r\n    connection_type=\"s3\",\r\n    format=\"parquet\",\r\n    connection_options={\r\n        \"path\": \"s3://podpahdata/processed/\",\r\n        \"partitionKeys\": []\r\n    },\r\n    transformation_ctx=\"S3bucketprocessed\"\r\n)\r\n\r\n# Finalização do job\r\njob.commit()\r\n"
+}
