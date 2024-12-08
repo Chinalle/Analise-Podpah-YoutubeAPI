@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 from utils import format_youtube_duration
 import json
-from aws import upload_to_s3
+#from aws import upload_to_s3
 
 load_dotenv()
 youtubeApiKey = os.getenv('YOUTUBE_API_KEY')
@@ -180,4 +180,3 @@ df.to_csv('./video_data.csv', index=False)
 # with open(path, 'w', encoding='utf-8') as f:
 #   json.dump(videos, f, ensure_ascii=False, indent=4) 
 
-#
