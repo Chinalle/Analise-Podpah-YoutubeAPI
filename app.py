@@ -3,12 +3,44 @@ import pandas as pd
 import os
 from dotenv import load_dotenv
 from utils import format_youtube_duration
-from aws import s3, upload_to_s3
-from youtube_api import get_playlists, playlists_data, youtubeApiKey, youtube
 
+# Carregar variáveis do .env
+load_dotenv()
 
-# tratando retorno: recebe um array com as informações das playlists do canal Podpah, para automatizar o processo de recuperar o id e nome das playlists
+# Obtendo a API key do .env
+youtubeApiKey = os.getenv('YOUTUBE_API_KEY')
 
+# Build é um recurso para interagir com a API
+# Argumentos: NomeServiço, versão, API KEY
+youtube = build('youtube', 'v3', developerKey=youtubeApiKey)
+
+# Nome do canal do Youtube
+channel_name = "Podpah"
+# Função que retorna o id do canal através do nome
+def get_channel_id(channel_name): 
+    # Variavel res é um dicinário que vai armazenar todas as propriedades do canal buscada
+    # A função search.list vai retornar as propriedades
+    # O argumento part recebendo o valor snippet, traz todos os parâmetros
+    # O q é o termo de busca, nesse caso o nome do canal
+    # Type especifica o tipo da busca, pode ser para videos ou playlist também
+    # maxResults limita a busca 
+    res = youtube.search().list( 
+        part='snippet', 
+        q=channel_name, 
+        type='channel', 
+        maxResults=1 
+    ).execute() 
+    # Verifica se a algum item dentro da lista items que se encontra no dicionario res
+    if res['items']: 
+        # Retorna o channelId
+        # [Items][0] é o primeiro valor dentro da lista items
+        # O primeiro valor da list items ([Items][0]) é o dicionario snippet
+        return res['items'][0]['snippet']['channelId'] 
+    else: 
+        return None 
+
+# Executando a função e armazenando o valor dentro dele
+channel_id = get_channel_id(channel_name) 
 
 
 playlistId = "PLaE_mZALZ0V1R6Ztc8W7SeCi_hHtEQ1f2"
@@ -73,7 +105,7 @@ def main():
     #videos = get_latest_videos(channel_id)
     filtered_videos = filter_non_shorts(videos)  # Filtra vídeos para evitar shorts
 
-    playlist = []
+    #playlist = []
 
     for video in filtered_videos: 
         stats = video["stats"]
@@ -83,19 +115,18 @@ def main():
             "views": stats["views"],
             "likes": stats["likes"],
             "comments": stats['comments'],
-            'published_at': stats['published_at'],
             "duration": format_youtube_duration(stats["duration"])
         }
+        db.create(video_info['title'],video_info['url'],video_info['views'],video_info['likes'],video_info['comments'],video_info['duration'])
+        #playlist.append(video_info)
 
-        playlist.append(video_info)
 
     df = pd.DataFrame(playlist)
 
-    #print(df)
+    print(df)
 
 
     df.to_csv('./df.csv', index=False)
-    #upload_to_s3('df_querido_diario', 'podpahdata')
 
 
 if __name__ == __main__:
