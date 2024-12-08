@@ -1,9 +1,9 @@
-from googleapiclient.discovery import build
-import pandas as pd
 import os
+import json
+import pandas as pd
+from googleapiclient.discovery import build
 from dotenv import load_dotenv
 from utils import format_youtube_duration
-import json
 from aws import upload_to_s3
 
 load_dotenv()
@@ -123,9 +123,9 @@ def get_playlist_videos(playlists):
 videos = get_playlist_videos(playlists_data)
 
 df = pd.DataFrame(videos)
-df.to_csv('./video_data.csv', index=False)
+#df.to_csv('./video_data.csv', index=False)
 
-upload_to_s3('video_data.csv', 'podpahdata', 'raw')
+#upload_to_s3('video_data.csv', 'podpahdata', 'raw')
 
 #print(videos)
 #print(json.dumps(videos, indent=4, ensure_ascii=False))
@@ -133,4 +133,3 @@ upload_to_s3('video_data.csv', 'podpahdata', 'raw')
 # path = 'videos_full_data.json'
 # with open(path, 'w', encoding='utf-8') as f:
 #   json.dump(videos, f, ensure_ascii=False, indent=4) 
-
