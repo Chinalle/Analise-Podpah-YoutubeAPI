@@ -17,12 +17,12 @@ def upload_to_s3(file_name, bucket, directory): # o file_name salva o arquivo ex
         print(f'O arquivo {file_name} não foi encontrado.')
     except NoCredentialsError:
         print('Credenciais não disponíveis.')
-    except PartialCredentialsError:
+    except PartialCredentialsError: # type: ignore
         print('Credenciais incompletas.')
 
-def get_bucket_data(bucket_name, file_name):
+def get_bucket_data(bucket_name, file_name,directory):
     global s3
-
+    object_name = f"{directory}/{file_name.split('/')[-1]}" 
     # Listar objetos no bucket
     response = s3.list_objects_v2(Bucket=bucket_name)
 
@@ -32,7 +32,7 @@ def get_bucket_data(bucket_name, file_name):
 
         # Acessar o objeto específico
         try:
-            object_s3 = s3.get_object(Bucket=bucket_name, Key=file_name)
+            object_s3 = s3.get_object(Bucket=bucket_name, Key=object_name)
             csv_content = object_s3['Body'].read().decode('utf-8')
             df = pd.read_csv(StringIO(csv_content))
             print('Dados do Bucket S3: \n')
@@ -44,5 +44,5 @@ def get_bucket_data(bucket_name, file_name):
     else:
         print('O bucket está vazio.')
 
-# teste fora do uso da api do youtube -> utiliza dados diretos do csv salvo no bucket
-#get_bucket_data('podpahdata', './df.csv') 
+#teste fora do uso da api do youtube -> utiliza dados diretos do csv salvo no bucket
+get_bucket_data('podpahdata', 'video_data.csv','raw') 

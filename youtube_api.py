@@ -88,6 +88,49 @@ def get_video_stats(video_id):
         'duration': duration
     } 
 
+
+def get_video_comments(video_id, max_results=100):
+    comments = []
+    request = youtube.commentThreads().list(
+        part="snippet",
+        videoId=video_id,
+        maxResults=max_results,
+        textFormat="plainText"
+    )
+
+    while request:
+        response = request.execute()
+
+        for item in response['items']:
+            comment = item['snippet']['topLevelComment']['snippet']
+            comments.append({
+                'video_id': video_id,
+                #'author': comment['authorDisplayName'],
+                'comment_text': comment['textDisplay'],
+                'like_count': comment['likeCount'],
+                #'published_at': comment['publishedAt']
+            })
+
+        request = youtube.commentThreads().list_next(request, response)
+
+    return comments
+
+
+def save_comments_to_csv(videos, file_name="video_comments.csv"):
+    all_comments = []
+    
+    for video in videos:
+        video_id = video['video_id']
+        print(f"Buscando comentários do vídeo {video_id}...")
+        comments = get_video_comments(video_id)
+        all_comments.extend(comments)
+
+    df = pd.DataFrame(all_comments)
+    df.to_csv(file_name, index=False, encoding='utf-8-sig')
+    print(f"Comentários salvos em: {file_name}!")
+
+
+
 def get_playlist_videos(playlists):
   videos = []
 
@@ -123,11 +166,12 @@ def get_playlist_videos(playlists):
 
 
 videos = get_playlist_videos(playlists_data)
+save_comments_to_csv(videos)
 
 df = pd.DataFrame(videos)
 df.to_csv('./video_data.csv', index=False)
 
-upload_to_s3('video_data.csv', 'podpahdata', 'raw')
+#upload_to_s3('video_data.csv', 'podpahdata', 'raw')
 
 #print(videos)
 #print(json.dumps(videos, indent=4, ensure_ascii=False))
