@@ -19,8 +19,6 @@ def upload_to_s3(file_name, bucket, directory): # o file_name salva o arquivo ex
         print('Credenciais não disponíveis.')
     except PartialCredentialsError: # type: ignore
         print('Credenciais incompletas.')
-
-#def get_bucket_data(bucket_name, file_name, directory):
 def get_bucket_data(bucket_name, file_name,directory):
     global s3
     object_name = f"{directory}/{file_name.split('/')[-1]}"
@@ -49,8 +47,6 @@ def get_bucket_data(bucket_name, file_name,directory):
         print('O bucket está vazio.')
 
 # teste fora do uso da api do youtube -> utiliza dados diretos do csv salvo no bucket
-get_bucket_data('podpahdata', 'video_data.csv', 'raw') 
+get_bucket_data('podpahdata', 'video_data.csv', 'raw')
 #teste fora do uso da api do youtube -> utiliza dados diretos do csv salvo no bucket
 get_bucket_data('podpahdata', 'video_data.csv','raw') 
-
-upload_to_s3('video_comments.csv','podpahdata','raw/video_comments')

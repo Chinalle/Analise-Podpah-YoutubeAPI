@@ -1,5 +1,4 @@
 import isodate
-
 def format_youtube_duration(duration):
     # Converte a string ISO 8601 para um objeto timedelta
     parsed_duration = isodate.parse_duration(duration)
