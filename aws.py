@@ -1,4 +1,5 @@
 import boto3
+from datetime import datetime
 import pandas as pd
 from io import StringIO
 from botocore.exceptions import NoCredentialsError
@@ -20,7 +21,6 @@ def upload_to_s3(file_name, bucket, directory): # o file_name salva o arquivo ex
     except PartialCredentialsError: # type: ignore
         print('Credenciais incompletas.')
 
-def get_bucket_data(bucket_name, file_name, directory):
 def get_bucket_data(bucket_name, file_name,directory):
     global s3
     object_name = f"{directory}/{file_name.split('/')[-1]}"
@@ -30,8 +30,8 @@ def get_bucket_data(bucket_name, file_name,directory):
     response = s3.list_objects_v2(Bucket=bucket_name)
 
     if 'Contents' in response:
-        for obj in response['Contents']:
-            print(f'Nome: {obj["Key"]}, Última Modificação: {obj["LastModified"]}, Tamanho: {obj["Size"]} bytes')
+        #for obj in response['Contents']:
+            #print(f'Nome: {obj["Key"]}, Última Modificação: {obj["LastModified"]}, Tamanho: {obj["Size"]} bytes')
 
         # Acessar o objeto específico
         try:
@@ -39,16 +39,16 @@ def get_bucket_data(bucket_name, file_name,directory):
             object_s3 = s3.get_object(Bucket=bucket_name, Key=object_name)
             csv_content = object_s3['Body'].read().decode('utf-8')
             df = pd.read_csv(StringIO(csv_content))
+            
             print('Dados do Bucket S3: \n')
-            print(df)
-            print()
-            print(df.head())
+            #print(df)
+            #print(df.head())
+            return df
         except s3.exceptions.NoSuchKey:
             print(f'O arquivo {file_name} não foi encontrado no bucket {bucket_name}.')
     else:
         print('O bucket está vazio.')
 
 # teste fora do uso da api do youtube -> utiliza dados diretos do csv salvo no bucket
-get_bucket_data('podpahdata', 'video_data.csv', 'raw')
-#teste fora do uso da api do youtube -> utiliza dados diretos do csv salvo no bucket
-get_bucket_data('podpahdata', 'video_data.csv','raw') 
+bucket_data = get_bucket_data('podpahdata', 'video_data.csv', 'raw')
+
