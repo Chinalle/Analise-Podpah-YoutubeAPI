@@ -20,7 +20,6 @@ def upload_to_s3(file_name, bucket, directory): # o file_name salva o arquivo ex
         print('Credenciais não disponíveis.')
     except PartialCredentialsError: # type: ignore
         print('Credenciais incompletas.')
-
 def get_bucket_data(bucket_name, file_name,directory):
     global s3
     object_name = f"{directory}/{file_name.split('/')[-1]}"
