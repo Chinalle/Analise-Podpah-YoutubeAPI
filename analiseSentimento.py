@@ -7,10 +7,11 @@ from aws import get_bucket_data, upload_to_s3
 # Configurando o cliente Comprehend
 comprehend = boto3.client('comprehend', region_name='us-east-1')
 
-df_video_comments = pd.read_csv(get_bucket_data('podpahdata', 'video_comments.csv','raw/video_comments'))
+df_video_comments = get_bucket_data('podpahdata', 'video_comments.csv','raw/video_comments')
 
-# Adiciona as colunas 'Sentiment' e 'SentimentScore'
+#Adiciona as colunas 'Sentiment' e 'SentimentScore'
 df_resultado_final = df_video_comments.assign(Sentiment=None, SentimentScore=None)
+
 
 # Função para processar cada comentário
 def process_comment(index, texto):
@@ -36,7 +37,9 @@ def process_comment(index, texto):
 # Usando ThreadPoolExecutor para executar as requisições em paralelo
 with concurrent.futures.ThreadPoolExecutor() as executor:
     # Envia as requisições em paralelo com os índices
-    resultados = list(executor.map(lambda args: process_comment(*args), enumerate(df_resultado_final['comment_text'])))
+   # resultados = list(executor.map(lambda args: process_comment(*args), enumerate(df_resultado_final['comment_text'])))
+   resultados = "n queremos pagar o aws"
+   pass
 
 # Atualiza o DataFrame com os resultados
 for index, sentiment, sentiment_score in resultados:
@@ -46,4 +49,5 @@ for index, sentiment, sentiment_score in resultados:
 df_resultado_final = df_resultado_final.query('Sentiment != "SEM COMENTARIO"')
 df_resultado_final.to_csv('SentimentScoreFinal.csv', index=False)
 
+upload_to_s3('SentimentScoreFinal.csv', 'podpahdata', 'raw/nlp-sentiments')
 
