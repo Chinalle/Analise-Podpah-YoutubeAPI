@@ -76,14 +76,18 @@ def get_video_stats(video_id):
 
     stats = res['items'][0]
     video_stats = stats['statistics']
+    snippet = stats['snippet']
     duration = stats['contentDetails']['duration']
     publishedAt = stats['snippet']['publishedAt']
+    thumbnail = snippet['thumbnails']['high']['url']
+    
     return { 
         'views': video_stats.get('viewCount', 0), 
         'likes': video_stats.get('likeCount', 0), 
         'comments': video_stats.get('commentCount', 0),
         'published_at': publishedAt,
-        'duration': duration
+        'duration': duration,
+        'thumbnail': thumbnail
     } 
 
 
@@ -156,7 +160,8 @@ def get_playlist_videos(playlists):
               'likes': stats['likes'],
               'comments': stats['comments'],
               'published_at': stats['published_at'],
-              'duration': stats['duration']
+              'duration': stats['duration'],
+              'thumbnail': stats['thumbnail']
           })
 
   return videos
@@ -164,16 +169,16 @@ def get_playlist_videos(playlists):
 
 
 videos = get_playlist_videos(playlists_data)
-save_comments_to_csv(videos)
+#save_comments_to_csv(videos)
 
 df = pd.DataFrame(videos)
-#df.to_csv('./video_data.csv', index=False)
+df.to_csv('./videos_data.csv', index=False)
 
-#upload_to_s3('video_data.csv', 'podpahdata', 'raw')
+upload_to_s3('videos_data.csv', 'podpahdata', 'raw')
 
 #print(videos)
-#print(json.dumps(videos, indent=4, ensure_ascii=False))
+print(json.dumps(videos, indent=4, ensure_ascii=False))
 
-# path = 'videos_full_data.json'
-# with open(path, 'w', encoding='utf-8') as f:
-#   json.dump(videos, f, ensure_ascii=False, indent=4) 
+path = 'videos_data.json'
+with open(path, 'w', encoding='utf-8') as f:
+    json.dump(videos, f, ensure_ascii=False, indent=4) 
