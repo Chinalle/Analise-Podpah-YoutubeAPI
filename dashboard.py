@@ -39,62 +39,62 @@ def load_data(source='local', file_name=None, bucket_name=None, directory=None):
 # Configurar título da dashboard
 st.title("Dashboard de Dados do Podpah")
 
-# Escolher fonte dos dados
-data_source = st.selectbox("Escolha a fonte dos dados:", ["local", "s3"])
+# Sidebar para carregar os dados
+st.sidebar.title("Carregar Dados")
+data_source = st.sidebar.selectbox("Escolha a fonte dos dados:", ["local", "s3"])
 
-# Configurações de carregamento de dados
 if data_source == "s3":
-    bucket = st.text_input("Informe o nome do bucket S3:", value="podpahdata")
-    directory = st.text_input("Informe o diretório no bucket:", value="raw")
-    file_name = st.text_input("Informe o nome do arquivo:", value="video_data.csv")
+    bucket = st.sidebar.text_input("Informe o nome do bucket S3:", value="podpahdata")
+    directory = st.sidebar.text_input("Informe o diretório no bucket:", value="raw")
+    file_name = st.sidebar.text_input("Informe o nome do arquivo:", value="video_data.csv")
     data = load_data(source="s3", file_name=file_name, bucket_name=bucket, directory=directory)
 else:
-    file_name = st.text_input("Informe o caminho do arquivo local:", value="video_data.csv")
+    file_name = st.sidebar.text_input("Informe o caminho do arquivo local:", value="video_data.csv")
     data = load_data(source="local", file_name=file_name)
 
-# Verificar se os dados foram carregados
-if data is not None:
-    st.write("### Dados Carregados:")
-    st.dataframe(data.head())
+# Criar abas para separação de funcionalidades
+tabs = st.tabs(["Visão Geral", "Gráficos", "K-Means (em breve)"])
 
-    # Garantir que a coluna `published_at` está no formato correto
-    if 'published_at' in data.columns:
-        data['published_at'] = pd.to_datetime(data['published_at'], errors='coerce')
-        data = data.dropna(subset=['published_at'])  # Remove valores inválidos
+# Aba: Visão Geral
+with tabs[0]:
+    st.header("Visão Geral dos Dados")
 
-    # Filtros interativos
-    if 'playlist_title' in data.columns:
-        playlist_filter = st.multiselect("Filtrar por Playlist:", data['playlist_title'].unique(), default=data['playlist_title'].unique())
-        data = data[data['playlist_title'].isin(playlist_filter)]
+    if data is not None:
+        # Filtro por playlist
+        if 'playlist_title' in data.columns:
+            playlist_filter = st.multiselect("Filtrar por Playlist:", data['playlist_title'].unique(), default=data['playlist_title'].unique())
+            data = data[data['playlist_title'].isin(playlist_filter)]
 
-    date_range = st.date_input("Filtrar por Data de Publicação:", [])
-    if date_range and len(date_range) == 2:
-        start_date, end_date = date_range
-        data = data[(data['published_at'] >= pd.Timestamp(start_date)) & (data['published_at'] <= pd.Timestamp(end_date))]
+        # Garantir que temos uma métrica de engajamento
+        if 'views' in data.columns and 'likes' in data.columns and 'comments' in data.columns:
+            data['engagement'] = data['likes'] + data['comments']  # Exemplo de métrica de engajamento
 
-    # Verificar se há dados após os filtros
-    if not data.empty:
-        # Gráficos
-        st.write("### Estatísticas por Vídeo")
-        fig, ax = plt.subplots(figsize=(10, 6))
-        sns.barplot(data=data.sort_values('views', ascending=False).head(10), x="views", y="title", ax=ax)
-        ax.set_title("Visualizações por Vídeo")
-        st.pyplot(fig)
+            # Dividir os dois carrosséis em blocos lado a lado
+            col1, col2 = st.columns(2)
 
-        st.write("### Duração dos Vídeos")
-        if 'duration' in data.columns:
-            data['duraçao_minutos'] = data['duration'].apply(
-                lambda x: int(x.split(":")[1]) + int(x.split(":")[0]) * 60 if ":" in x else 0)
-            fig, ax = plt.subplots(figsize=(10, 6))
-            sns.histplot(data['duraçao_minutos'], bins=20, kde=True, ax=ax)    
-            ax.set_title("Distribuição de Duração dos Vídeos")
-            st.pyplot(fig)
+            with col1:
+                st.subheader("Vídeos com Mais Engajamento")
+                top_videos = data.sort_values('engagement', ascending=False).head(10).reset_index()
+                top_index = st.slider("Selecione o Vídeo (Mais Engajados):", 0, len(top_videos) - 1, 0, key="top_carousel")
+                video = top_videos.iloc[top_index]
+                st.image(video.get('thumbnail', 'https://via.placeholder.com/150'), width=300)
+                st.write(f"**Título:** {video['title']}")
+                st.write(f"**Engajamento:** {video['engagement']} (Likes: {video['likes']}, Comentários: {video['comments']})")
+                st.write(f"**Visualizações:** {video['views']}")
 
-        # Exportar dados filtrados
-        if st.button("Exportar Dados Filtrados"):
-            data.to_csv("filtered_data.csv", index=False)
-            st.success("Dados exportados para 'filtered_data.csv'!")
+            with col2:
+                st.subheader("Vídeos com Menos Engajamento")
+                low_videos = data.sort_values('engagement', ascending=True).head(10).reset_index()
+                low_index = st.slider("Selecione o Vídeo (Menos Engajados):", 0, len(low_videos) - 1, 0, key="low_carousel")
+                video = low_videos.iloc[low_index]
+                st.image(video.get('thumbnail', 'https://via.placeholder.com/150'), width=300)
+                st.write(f"**Título:** {video['title']}")
+                st.write(f"**Engajamento:** {video['engagement']} (Likes: {video['likes']}, Comentários: {video['comments']})")
+                st.write(f"**Visualizações:** {video['views']}")
+
+        # Exibir os dados abaixo dos carrosséis
+        st.subheader("Dados Carregados")
+        st.dataframe(data)
+
     else:
-        st.warning("Nenhum dado disponível após aplicar os filtros.")
-else:
-    st.warning("Nenhum dado foi carregado. Verifique os inputs.")
+        st.warning("Nenhum dado carregado. Verifique as configurações na barra lateral.")
