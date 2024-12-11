@@ -8,7 +8,7 @@ import json
 
 s3 = boto3.client('s3') # instanciando armazenamento do aws s3 para dados não estruturados
 
-def upload_to_s3(file_name, bucket, directory): # o file_name salva o arquivo exatamente como foi descrito no parametro 1 da função
+def upload_to_s3(file_name, bucket, directory):
 
     object_name = f"{directory}/{file_name.split('/')[-1]}" 
 
@@ -62,10 +62,10 @@ endpoints = {
 }
 
 data = {
-    "playlist_title": 1,  # Código da categoria do título da playlist
-    "day_of_week": 2,     # Dia da semana (0 = Segunda, ..., 6 = Domingo)
-    "hour": 15,           # Hora do dia (formato 24 horas)
-    "duration": 3600      # Duração do vídeo em segundos
+    "playlist_title": 1,  
+    "day_of_week": 2,     
+    "hour": 15,           
+    "duration": 3600      
 }
 
 def predict_all_endpoints(data, endpoints, region="us-east-1"):
@@ -80,23 +80,21 @@ def predict_all_endpoints(data, endpoints, region="us-east-1"):
     :param region: Região da AWS onde os endpoints estão configurados
     :return: Dicionário com as previsões
     """
-    # Cliente do SageMaker Runtime
+   
     runtime = boto3.client("sagemaker-runtime", region_name=region)
     
-    # Converter o dicionário 'data' para um DataFrame do Pandas
+
     endpoint_df = pd.DataFrame([data])
     
-    # Converter o DataFrame para CSV (sem índice)
     csv_payload = endpoint_df.to_csv(index=False, header=False)
     
     predictions = {}
     
-    # Loop pelos endpoints
     for key, endpoint_name in endpoints.items():
         try:
             response = runtime.invoke_endpoint(
                 EndpointName=endpoint_name,
-                ContentType="text/csv",  # Ajustado para CSV
+                ContentType="text/csv",
                 Body=csv_payload,
             )
             predictions[key] = json.loads(response["Body"].read().decode())
