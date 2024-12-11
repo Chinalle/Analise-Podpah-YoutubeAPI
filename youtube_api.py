@@ -107,10 +107,8 @@ def get_video_comments(video_id, max_results=100):
             comment = item['snippet']['topLevelComment']['snippet']
             comments.append({
                 'video_id': video_id,
-                #'author': comment['authorDisplayName'],
                 'comment_text': comment['textDisplay'],
                 'like_count': comment['likeCount'],
-                #'published_at': comment['publishedAt']
             })
 
         request = youtube.commentThreads().list_next(request, response)
