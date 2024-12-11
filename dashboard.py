@@ -37,7 +37,7 @@ def load_data(source='local', file_name=None, bucket_name=None, directory=None):
         return None
 
 # Configurar título da dashboard
-st.title("Dashboard de Dados do Podpah")
+st.title("Dados do Podpah")
 
 # Sidebar para carregar os dados
 st.sidebar.title("Carregar Dados")
@@ -46,14 +46,14 @@ data_source = st.sidebar.selectbox("Escolha a fonte dos dados:", ["local", "s3"]
 if data_source == "s3":
     bucket = st.sidebar.text_input("Informe o nome do bucket S3:", value="podpahdata")
     directory = st.sidebar.text_input("Informe o diretório no bucket:", value="raw")
-    file_name = st.sidebar.text_input("Informe o nome do arquivo:", value="video_data.csv")
-    data = load_data(source="s3", file_name=file_name, bucket_name=bucket, directory=directory)
+    file_name = st.sidebar.text_input("Informe o nome do arquivo:", value="videos_data.csv")
+    data = load_data(source="s3", file_name=file_name, bucket_name=bucket, directory    =directory)
 else:
-    file_name = st.sidebar.text_input("Informe o caminho do arquivo local:", value="video_data.csv")
+    file_name = st.sidebar.text_input("Informe o caminho do arquivo local:", value="videos_data.csv")
     data = load_data(source="local", file_name=file_name)
 
 # Criar abas para separação de funcionalidades
-tabs = st.tabs(["Visão Geral", "Gráficos", "K-Means (em breve)"])
+tabs = st.tabs(["Visão Geral", "Gráficos"])
 
 # Aba: Visão Geral
 with tabs[0]:
@@ -68,7 +68,7 @@ with tabs[0]:
         # Garantir que temos uma métrica de engajamento
         if 'views' in data.columns and 'likes' in data.columns and 'comments' in data.columns:
             data['engagement'] = data['likes'] + data['comments']  # Exemplo de métrica de engajamento
-
+        
             # Dividir os dois carrosséis em blocos lado a lado
             col1, col2 = st.columns(2)
 
@@ -77,7 +77,9 @@ with tabs[0]:
                 top_videos = data.sort_values('engagement', ascending=False).head(10).reset_index()
                 top_index = st.slider("Selecione o Vídeo (Mais Engajados):", 0, len(top_videos) - 1, 0, key="top_carousel")
                 video = top_videos.iloc[top_index]
-                st.image(video.get('thumbnail', 'https://via.placeholder.com/150'), width=300)
+                thumbnail_url = video.get('thumbnail', 'https://podpahdata.s3.us-east-1.amazonaws.com/raw/videos_data.csv')  # Obtendo a URL da thumbnail
+                if thumbnail_url:
+                    st.image(thumbnail_url, width=300)
                 st.write(f"**Título:** {video['title']}")
                 st.write(f"**Engajamento:** {video['engagement']} (Likes: {video['likes']}, Comentários: {video['comments']})")
                 st.write(f"**Visualizações:** {video['views']}")
@@ -87,7 +89,9 @@ with tabs[0]:
                 low_videos = data.sort_values('engagement', ascending=True).head(10).reset_index()
                 low_index = st.slider("Selecione o Vídeo (Menos Engajados):", 0, len(low_videos) - 1, 0, key="low_carousel")
                 video = low_videos.iloc[low_index]
-                st.image(video.get('thumbnail', 'https://via.placeholder.com/150'), width=300)
+                thumbnail_url = video.get('thumbnail', 'https://podpahdata.s3.us-east-1.amazonaws.com/raw/videos_data.csv')  # Obtendo a URL da thumbnail
+                if thumbnail_url:
+                    st.image(thumbnail_url, width=300)
                 st.write(f"**Título:** {video['title']}")
                 st.write(f"**Engajamento:** {video['engagement']} (Likes: {video['likes']}, Comentários: {video['comments']})")
                 st.write(f"**Visualizações:** {video['views']}")
@@ -98,3 +102,30 @@ with tabs[0]:
 
     else:
         st.warning("Nenhum dado carregado. Verifique as configurações na barra lateral.")
+
+# Aba: Gráficos
+with tabs[1]:
+    st.header("Visualizações Gráficas")
+
+    if data is not None:
+        # Gráfico de barras: Visualizações por Playlist
+        if 'playlist_title' in data.columns and 'views' in data.columns:
+            plt.figure(figsize=(10, 6))
+            sns.barplot(data=data, x='playlist_title', y='views', ci=None)
+            plt.xticks(rotation=45)
+            plt.title("Total de Visualizações por Playlist")
+            plt.xlabel("Playlist")
+            plt.ylabel("Visualizações")
+            st.pyplot(plt)
+
+        # Gráfico de dispersão: Engajamento vs. Visualizações
+        if 'engagement' in data.columns and 'views' in data.columns:
+            plt.figure(figsize=(10, 6))
+            sns.scatterplot(data=data, x='views', y='engagement', hue='playlist_title', s=100)
+            plt.title("Engajamento vs. Visualizações")
+            plt.xlabel("Visualizações")
+            plt.ylabel("Engajamento")
+            st.pyplot(plt)
+
+    else:
+        st.warning("Carregue os dados para visualizar os gráficos.")
